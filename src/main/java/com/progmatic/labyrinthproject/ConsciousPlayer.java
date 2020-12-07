@@ -11,71 +11,63 @@ import java.util.Stack;
 public class ConsciousPlayer implements Player {
 
     private Tree countingCells;
-    private Tree.Node actualNode;
-    private Stack<Tree.Node> plan = new Stack();
+    private Stack<Direction> plan = new Stack();
+
+
+
 
 
     @Override
     public Direction nextMove(Labyrinth l) {
 
-        countingCells = new Tree(l.getStart());
-        actualNode = countingCells.getStart();
-        putChildrenCells(l, actualNode);
-        Tree.Node lastNode = findNode(l.getEnd());
-        plan.push(lastNode);
-        for (int i = lastNode.getMinStepsToReach(); i >0 ; i--) {
-            plan.push(lastNode.getParent());
-            lastNode =lastNode.getParent();
+        if(countingCells==null) {
+            countingCells = new Tree(l.getStart());
+            putChildrenNodes(l, countingCells.getStart());
+            Tree.Node lastNode = countingCells.findFirstNode(l.getEnd());
+            plan.push(lastNode.getDirection());
+            for (int i = lastNode.getMinStepsToReach(); i > 0; i--) {
+                plan.push(lastNode.getParent().getDirection());
+                lastNode = lastNode.getParent();
+            }
+            plan.pop();
         }
-
-        return plan.pop().getCoordinate(); //Ebből még vissza lehet kapni a directiont, de sajnos nem volt rá időm.
+        return plan.pop();
     }
 
 
-    private Tree.Node findNode(Coordinate nodeValue, Tree.Node node) {
-        if (node.getCoordinate().equals(nodeValue)) return node;
-
-        List<Tree.Node> children = node.getChildren();
-        for (Tree.Node child : children) {
-            //if (child.getName().equals(nodeValue)) return child;
-            Tree.Node result = findNode(nodeValue, child);
-            if (result != null) return result;
-        }
-        return null;
-    }
-
-    public Tree.Node findNode(Coordinate nodeValue) {
-
-        Tree.Node node = findNode(nodeValue, countingCells.getStart());
-        return node;
-    }
 
 
-    public void putChildrenCells(Labyrinth l, Tree.Node actual) {
+    public void putChildrenNodes(Labyrinth l, Tree.Node node) {
 
 
-        List<Direction> possibleMoves = l.possibleMoves(actual.getCoordinate());
+        List<Direction> possibleMoves = l.possibleMoves(node.getCoordinate());
         for (Direction possibleMove : possibleMoves) {
-            Coordinate newcoord = newCoordinate(possibleMove, l);
-            Tree.Node existingNode = findNode(newcoord);
-            if (existingNode == null) {
+            Coordinate possibleCoord = newCoordinate(node, possibleMove, l);
+            if (!hasNodeThisCoordinateAsParent(possibleCoord, node)) {
                 Tree.Node n = new Tree.Node(
-                        newcoord,
-                        actual.getMinStepsToReach() + 1,
-                        actual);
-                actual.getChildren().add(n);
-                actual = n;
-                putChildrenCells(l, n);
-            } else if (existingNode.getMinStepsToReach() > actual.getMinStepsToReach() + 1) {
-                existingNode.setMinStepsToReach(actual.getMinStepsToReach() + 1);
+                        possibleCoord,
+                        node.getMinStepsToReach() + 1,
+                        node,
+                        possibleMove);
+                countingCells.addAsChild(node, n);
+                putChildrenNodes(l, n);
             }
         }
     }
 
-    private Coordinate newCoordinate(Direction possibleMove, Labyrinth l) {
+    private boolean hasNodeThisCoordinateAsParent(Coordinate possibleCoord, Tree.Node node) {
+        Tree.Node n = node;
+        while (n.getParent()!=null){
+            if(n.getParent().getCoordinate().equals(possibleCoord)) return true;
+            n=n.getParent();
+        }
+        return false;
+    }
 
-        int col = actualNode.getCoordinate().getCol();
-        int row = actualNode.getCoordinate().getRow();
+    private Coordinate newCoordinate(Tree.Node actual, Direction possibleMove, Labyrinth l) {
+
+        int col = actual.getCoordinate().getCol();
+        int row = actual.getCoordinate().getRow();
         if (possibleMove == Direction.NORTH && row > 0) {
             return new Coordinate(col, row - 1);
         } else if (possibleMove == Direction.SOUTH && row < l.getWidth() - 1) {

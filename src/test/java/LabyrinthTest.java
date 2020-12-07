@@ -298,7 +298,7 @@ public class LabyrinthTest {
     public void testConsciousPlayer() throws Exception {
         Player cp = getConsciousPlayerImpl();
         
-        String[] files = {"labyrinth1.txt", "labyrinth2.txt", "labyrinth3.txt"};
+        String[] files = {"labyrinth1.txt"};
         for (String file : files) {
             Labyrinth l = getLabyrinthImpl();
             l.loadLabyrinthFile(file);
@@ -310,6 +310,42 @@ public class LabyrinthTest {
             assertEquals(l.getCellType(l.getPlayerPosition()), CellType.END);
         }
     }
+
+    @Test
+    public void testConsciousPlayer2() throws Exception {
+        Player cp = getConsciousPlayerImpl();
+
+        String[] files = {  "labyrinth2.txt"};
+        for (String file : files) {
+            Labyrinth l = getLabyrinthImpl();
+            l.loadLabyrinthFile(file);
+            while (! l.hasPlayerFinished()) {
+                Direction d = cp.nextMove(l);
+                l.movePlayer( d );
+            }
+            assertEquals(true, l.hasPlayerFinished());
+            assertEquals(l.getCellType(l.getPlayerPosition()), CellType.END);
+        }
+    }
+
+    @Test
+    public void testConsciousPlayer3() throws Exception {
+        Player cp = getConsciousPlayerImpl();
+
+        String[] files = {  "labyrinth3.txt"};
+        for (String file : files) {
+            Labyrinth l = getLabyrinthImpl();
+            l.loadLabyrinthFile(file);
+            while (! l.hasPlayerFinished()) {
+                Direction d = cp.nextMove(l);
+                l.movePlayer( d );
+            }
+            assertEquals(true, l.hasPlayerFinished());
+            assertEquals(l.getCellType(l.getPlayerPosition()), CellType.END);
+        }
+    }
+
+
     
     @Test(expected = InvalidMoveException.class)
     public void testInvalidMove1() throws Exception {
